@@ -1,15 +1,13 @@
-import { IsArray, IsNotEmpty, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsObject, IsString } from 'class-validator';
 
-export class ArticleSearchDto {
+export class DataDtoSearchArticle {
   @IsNotEmpty()
-  @IsString()
+  @IsObject()
+  data: ArticleSearchDto;
+}
+
+export interface ArticleSearchDto {
   article: string;
-
-  @IsNotEmpty()
-  @IsString()
   address: string;
-
-  @IsNotEmpty()
-  @IsArray()
   keys: string[];
 }
