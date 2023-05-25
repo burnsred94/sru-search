@@ -10,6 +10,8 @@ async function bootstrap() {
 
   app.setGlobalPrefix(`${configService.get('PROJECT')}`);
 
+  app.enableCors();
+
   app.useGlobalPipes(new ValidationPipe());
 
   const config = new DocumentBuilder()
