@@ -4,7 +4,7 @@ import { IResponseWbSearch } from 'src/interfaces';
 
 @Injectable()
 export class SearchProvider {
-  constructor(private readonly gotService: GotService) {}
+  constructor(private readonly gotService: GotService) { }
 
   async search(url: string, article: number) {
     const { body } = await this.gotService.gotRef(url);
@@ -12,14 +12,16 @@ export class SearchProvider {
     const { data } = lt as IResponseWbSearch;
 
     let index = 0;
-    while (index < data.products.length) {
-      if (data.products[index].id === article) {
-        return index + 1;
+    if (data !== undefined && data.products.length > 0) {
+      while (index < data.products.length) {
+        if (data.products[index].id === article) {
+          return index + 1;
+        }
+        index++;
       }
-      index++;
-    }
-    if (index === data.products.length) {
-      return 0;
+      if (index === data.products.length) {
+        return 0;
+      }
     }
   }
 }
