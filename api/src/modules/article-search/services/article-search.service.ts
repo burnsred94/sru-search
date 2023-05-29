@@ -30,8 +30,7 @@ export class ArticleSearchService {
           urlString,
           Number(article),
         );
-
-        if (search === 0 && url.length === index + 1) {
+        if (search === 0 && url.length === index + 1 && search !== undefined) {
           const result = new ResultSearchEntity(keys, search);
           return { ...result };
         } else if (search !== 0) {
@@ -41,6 +40,7 @@ export class ArticleSearchService {
           );
           return { ...result };
         }
+        return new ResultSearchEntity(keys, search)
       });
 
       const results = await Promise.all(dataResult);
