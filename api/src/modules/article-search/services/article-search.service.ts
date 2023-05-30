@@ -47,10 +47,12 @@ export class ArticleSearchService {
           result.push(datum[counter]);
         }
         counter++;
+        console.log(result);
       }
     }
 
     if (result.length === data.length) {
+      console.log(result);
       return result.flat();
     }
   }

@@ -5,7 +5,7 @@ import { IResponseWbSearch } from 'src/interfaces';
 
 @Injectable()
 export class SearchProvider {
-  constructor(private readonly gotService: GotService) {}
+  constructor(private readonly gotService: GotService) { }
 
   async search(url: string, article: number) {
     // console.log(url)
@@ -23,7 +23,12 @@ export class SearchProvider {
     //     return 0;
     //   }
     // }
+    if (data?.products === undefined) {
+      return 0;
+    }
+
     const find = data.products.findIndex(p => p.id === article);
+
     return find === -1 ? 0 : find + 1;
   }
 }
