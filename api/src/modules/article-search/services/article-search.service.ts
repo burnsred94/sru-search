@@ -4,7 +4,7 @@ import { ArticleSearchDto } from '../dto/article-search.dto';
 import { ConfigService } from '@nestjs/config';
 import { IResponseGeo } from 'src/interfaces/responses/response.geo.interface';
 import { EntityParseArticle } from '../entities/parse-article.entity';
-import { compact, forEach, iteratee, map, uniqBy } from 'lodash';
+import { compact, forEach, iteratee, map, uniq, uniqBy } from 'lodash';
 import { ParseUrlEntity } from '../entities/parse-url-search.entity';
 import { FetchGeoProvider } from '../providers/fetch.geo.provider';
 import { SearchProvider } from '../providers/search.provider';
@@ -18,43 +18,63 @@ export class ArticleSearchService {
   ) { }
 
   async search(query: ArticleSearchDto) {
-    let iterator = 0;
     const dataUrl = await this.fetchGeoProvider.fetchGeo(query);
-    const dataR = [];
 
-    while (dataUrl.length > iterator) {
-      const { url, article, keys } = dataUrl[iterator];
+    const dataR = map(dataUrl, async data => {
+      const { url, article, keys } = data;
+      return await this.searchUrl(url, article, keys);
+    });
 
-      const dataResult = map(url, async (urlString, index) => {
-        const search = await this.searchProvider.search(
-          urlString,
-          Number(article),
-        );
-        if (search === 0 && url.length === index + 1 && search !== undefined) {
-          const result = new ResultSearchEntity(keys, search);
-          return { ...result };
-        } else if (search !== 0) {
-          const result = new ResultSearchEntity(
-            keys,
-            Number(String(index + 1) + String(search)),
-          );
-          return { ...result };
-        }
-        return new ResultSearchEntity(keys, search)
-      });
-
-      const results = await Promise.all(dataResult);
-      dataResult.length === 0 ? null : dataR.push(...results);
-
-      iterator += 1;
-    }
-
-    if (dataUrl.length === iterator) {
-      const compactResult = compact(dataR);
+    if (dataUrl.length === dataR.length) {
+      const resolved = await Promise.all(dataR);
+      const result = await this.filterData(resolved);
       return {
         address: query.address,
-        result: uniqBy(compactResult, 'key')
+        result: result,
       };
     }
+  }
+
+  async filterData(data: ResultSearchEntity[][]) {
+    const result = [];
+    for (const datum of data) {
+      let counter = 0;
+      while (datum.length > counter) {
+        if (typeof datum[counter].position === 'number') {
+          result.push(datum[counter]);
+          break;
+        } else if (datum.length === counter + 1) {
+          result.push(datum[counter]);
+        }
+        counter++;
+      }
+    }
+
+    if (result.length === data.length) {
+      return result.flat();
+    }
+  }
+
+  async searchUrl(urls: string[], article: string, keys) {
+    const dataResult = map(urls, async (urlString, index) => {
+      const search = await this.searchProvider.search(
+        urlString,
+        Number(article),
+      );
+
+      if (search === 0 && urls.length === index + 1 && search !== undefined) {
+        const result = new ResultSearchEntity(keys, search);
+        return { ...result };
+      } else if (search !== 0) {
+        const result = new ResultSearchEntity(
+          keys,
+          index == 0 ? search : index * 100 + 100 + search,
+        );
+        return { ...result };
+      }
+      return new ResultSearchEntity(keys, search);
+    });
+
+    return await Promise.all(dataResult);
   }
 }

@@ -12,7 +12,7 @@ export class FetchGeoProvider {
   constructor(
     private readonly gotService: GotService,
     private readonly configService: ConfigService,
-  ) {}
+  ) { }
 
   async fetchGeo(query: ArticleSearchDto) {
     let iterator = 0;
