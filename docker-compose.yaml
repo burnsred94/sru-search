@@ -12,6 +12,7 @@ services:
       context: ./api
       dockerfile: Dockerfile
       target: production
+    restart: unless-stopped
     env_file:
       - ./api/.env
     ports:

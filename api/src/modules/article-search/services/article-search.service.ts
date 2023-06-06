@@ -5,7 +5,6 @@ import { ConfigService } from '@nestjs/config';
 import { IResponseGeo } from 'src/interfaces/responses/response.geo.interface';
 import { EntityParseArticle } from '../entities/parse-article.entity';
 import { compact, forEach, iteratee, map, uniq, uniqBy } from 'lodash';
-import { ParseUrlEntity } from '../entities/parse-url-search.entity';
 import { FetchGeoProvider } from '../providers/fetch.geo.provider';
 import { SearchProvider } from '../providers/search.provider';
 import { ResultSearchEntity } from '../entities/result-search.entity';
@@ -47,12 +46,10 @@ export class ArticleSearchService {
           result.push(datum[counter]);
         }
         counter++;
-        console.log(result);
       }
     }
 
     if (result.length === data.length) {
-      console.log(result);
       return result.flat();
     }
   }

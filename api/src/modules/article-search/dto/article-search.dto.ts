@@ -1,4 +1,4 @@
-import { IsArray, IsNotEmpty, IsObject, IsString } from 'class-validator';
+import { IsNotEmpty, IsObject } from 'class-validator';
 
 export class DataDtoSearchArticle {
   @IsNotEmpty()
