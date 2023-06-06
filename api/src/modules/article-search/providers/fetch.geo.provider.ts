@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { GotService } from '@t00nday/nestjs-got';
 import { ArticleSearchDto } from '../dto/article-search.dto';
 import { IResponseGeo } from 'src/interfaces';
-import { map } from 'lodash';
 import { ParseUrlEntity } from '../entities/parse-url-search.entity';
 import { EntityParseArticle } from '../entities/parse-article.entity';
 import { ConfigService } from '@nestjs/config';
@@ -15,31 +14,32 @@ export class FetchGeoProvider {
   ) { }
 
   async fetchGeo(query: ArticleSearchDto) {
-    let iterator = 0;
-    const fetchUrl =
-      (await this.configService.get('API_URL_GEO')) + `/${query.address}`;
-    const { body } = await this.gotService.gotRef(fetchUrl);
+    const fetchUrl = await this.configService.get('API_URL_GEO');
+    const { body } = await this.gotService.gotRef(
+      fetchUrl + `/${query.address}`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ query: query.address }),
+      });
+
     const lt = JSON.parse(body);
     const { data } = lt as IResponseGeo;
     const { address } = data;
 
-    const dataParsed = map(query.keys, key => {
-      const dataUrl = [];
-      while (iterator !== 21) {
-        const url = new ParseUrlEntity(address.urls, key, iterator + 1).url;
-        dataUrl.push(url);
-        iterator += 1;
-      }
-      if (dataUrl.length === 21) {
-        const data = new EntityParseArticle({
-          url: dataUrl,
-          article: query.article,
-          keys: key,
-        });
-        iterator = 0;
-        return data;
-      }
+    const dataParsed = query.keys.map(async key => {
+      const dataUrl = Array.from(
+        { length: 21 },
+        (_, index) => new ParseUrlEntity(address.urls, key, index + 1).url,
+      );
+      const data = new EntityParseArticle({
+        url: dataUrl,
+        article: query.article,
+        keys: key,
+      });
+      return data;
     });
-    return dataParsed;
+
+    const results = await Promise.all(dataParsed);
+    return results;
   }
 }

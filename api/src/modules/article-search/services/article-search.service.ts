@@ -19,19 +19,18 @@ export class ArticleSearchService {
   async search(query: ArticleSearchDto) {
     const dataUrl = await this.fetchGeoProvider.fetchGeo(query);
 
-    const dataR = map(dataUrl, async data => {
+    const dataR = dataUrl.map(async data => {
       const { url, article, keys } = data;
       return await this.searchUrl(url, article, keys);
     });
 
-    if (dataUrl.length === dataR.length) {
-      const resolved = await Promise.all(dataR);
-      const result = await this.filterData(resolved);
-      return {
-        address: query.address,
-        result: result,
-      };
-    }
+    const resolved = await Promise.all(dataR);
+    const result = await this.filterData(resolved);
+
+    return {
+      address: query.address,
+      result: result,
+    };
   }
 
   async filterData(data: ResultSearchEntity[][]) {
@@ -52,6 +51,7 @@ export class ArticleSearchService {
     if (result.length === data.length) {
       return result.flat();
     }
+    return await Promise.resolve(result.flat());
   }
 
   async searchUrl(urls: string[], article: string, keys) {
