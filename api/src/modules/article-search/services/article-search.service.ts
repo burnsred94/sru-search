@@ -14,7 +14,7 @@ export class ArticleSearchService {
   constructor(
     private readonly searchProvider: SearchProvider,
     private readonly fetchGeoProvider: FetchGeoProvider,
-  ) { }
+  ) {}
 
   async search(query: ArticleSearchDto) {
     const dataUrl = await this.fetchGeoProvider.fetchGeo(query);
