@@ -1,9 +1,9 @@
 version: '3.8'
 
-networks:
-  geo_default:
-    external:
-      name: geo_default
+# networks:
+#   geo_default:
+#     external:
+#       name: geo_default
 
 services:
   api:
@@ -19,5 +19,5 @@ services:
       - $PORT:$PORT_DEV
     volumes:
       - ./api/:/usr/src/app
-    networks:
-      - geo_default
+    # networks:
+    #   - geo_default
