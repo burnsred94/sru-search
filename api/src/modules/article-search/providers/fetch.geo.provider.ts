@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { GotService } from '@t00nday/nestjs-got';
-import { ArticleSearchDto } from '../dto/article-search.dto';
+import { SearchArticleDto } from '../dto/article-search.dto';
 import { IResponseGeo } from 'src/interfaces';
 import { ParseUrlEntity } from '../entities/parse-url-search.entity';
 import { EntityParseArticle } from '../entities/parse-article.entity';
@@ -11,30 +11,21 @@ import axios from 'axios';
 export class FetchGeoProvider {
   constructor(private readonly configService: ConfigService) { }
 
-  async fetchGeo(query: ArticleSearchDto) {
+  async fetchGeo(pwz: { name: string }, key: string) {
     const fetchUrl = await this.configService.get('API_URL_GEO');
 
     const { data } = await axios.post(fetchUrl, {
-      query: query.address,
+      query: pwz.name,
     });
 
     const { data: dataGeo } = data as IResponseGeo;
 
-    const dataParsed = query.keys.map(async key => {
-      const dataUrl = Array.from(
-        { length: 21 },
-        (_, index) =>
-          new ParseUrlEntity(dataGeo.address.urls, key, index + 1).url,
-      );
-      const data = new EntityParseArticle({
-        url: dataUrl,
-        article: query.article,
-        keys: key,
-      });
-      return data;
-    });
+    const dataUrl = Array.from(
+      { length: 20 },
+      (_, index) =>
+        new ParseUrlEntity(dataGeo.address.urls, key, index + 1).url,
+    );
 
-    const results = await Promise.all(dataParsed);
-    return results;
+    return dataUrl
   }
 }

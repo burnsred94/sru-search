@@ -1,22 +1,34 @@
 import { Injectable } from '@nestjs/common';
 import { GotService } from '@t00nday/nestjs-got';
+import axios from 'axios';
 import { IResponseWbSearch } from 'src/interfaces';
 
 @Injectable()
 export class SearchProvider {
-  constructor(private readonly gotService: GotService) {}
+  constructor(private readonly gotService: GotService) { }
 
-  async search(url: string, article: number) {
-    const { body } = await this.gotService.gotRef(url);
-    const lt = JSON.parse(body);
-    const { data } = lt as IResponseWbSearch;
+  async search(urls: string[], article: number) {
+    let iteratee = 0
+    const result = [];
 
-    if (data?.products === undefined) {
-      return 0;
+    while (urls.length > iteratee) {
+      const { data } = await axios.get<IResponseWbSearch>(urls[iteratee]);
+      result.push(...data.data.products);
+      const find = result.findIndex(p => p.id === article);
+      if (find !== -1) {
+        return find + 1;
+      }
+      iteratee++;
     }
 
-    const find = data.products.findIndex(p => p.id === article);
+    // const { data } = lt as IResponseWbSearch;
 
-    return find === -1 ? 0 : find + 1;
+    // if (data?.products === undefined) {
+    //   return 0;
+    // }
+
+    // const find = data.products.findIndex(p => p.id === article);
+
+    // return find === -1 ? 0 : find + 1;
   }
 }

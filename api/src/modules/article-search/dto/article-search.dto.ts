@@ -1,13 +1,14 @@
-import { IsNotEmpty, IsObject } from 'class-validator';
+import { IsArray, IsNotEmpty, IsString } from 'class-validator';
 
-export class DataDtoSearchArticle {
+export class SearchArticleDto {
   @IsNotEmpty()
-  @IsObject()
-  data: ArticleSearchDto;
+  @IsString()
+  article: string;
+  @IsNotEmpty()
+  @IsArray()
+  pvz: { name: string };
+  @IsNotEmpty()
+  @IsString()
+  key: string;
 }
 
-export interface ArticleSearchDto {
-  article: string;
-  address: string;
-  keys: string[];
-}

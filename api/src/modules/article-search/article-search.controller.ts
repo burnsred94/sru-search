@@ -9,23 +9,19 @@ import {
 import { ArticleSearchService } from './services/article-search.service';
 import { Response } from 'express';
 import { ApiCreatedResponse } from '@nestjs/swagger';
-import { DataDtoSearchArticle } from './dto/article-search.dto';
+import { SearchArticleDto } from './dto/article-search.dto';
 
 @Controller('search/v1')
 export class ArticleSearchController {
   protected readonly logger = new Logger(ArticleSearchController.name);
 
-  constructor(private readonly articleSearchService: ArticleSearchService) {}
+  constructor(private readonly articleSearchService: ArticleSearchService) { }
 
   @ApiCreatedResponse({ description: 'Article Search' })
   @Post('article')
-  async search(
-    @Body() searchObject: DataDtoSearchArticle,
-    @Res() response: Response,
-  ) {
+  async search(@Body() searchObject: SearchArticleDto, @Res() response: Response) {
     try {
-      const { data } = searchObject;
-      const dataSearch = await this.articleSearchService.search(data);
+      const dataSearch = await this.articleSearchService.search(searchObject);
       return response.status(HttpStatus.OK).send({
         status: HttpStatus.OK,
         data: dataSearch,
