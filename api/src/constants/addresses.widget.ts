@@ -1,0 +1,7 @@
+export const ADDRESS_WIDGET = [
+  '6478fdd330e79c580489bd1f',
+  '6478fea130e79c580489c7dd',
+  '6479f26e381e0d5c5db626db',
+  '647902e030e79c58048a3668',
+  '6479024530e79c58048a238d',
+];
