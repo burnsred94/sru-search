@@ -10,7 +10,7 @@ export class QueueProvider {
   queue: Array<any>;
 
   constructor(private readonly configService: ConfigService) {
-    this.concurrency = Number(this.configService.get('LIMIT_TASK_QUEUE_CONCURRENCY'));
+    this.concurrency = 56;
     this.running = 0;
     this.queue = [];
   }
