@@ -10,7 +10,7 @@ export class QueueProvider {
   queue: Array<any>;
 
   constructor(private readonly configService: ConfigService) {
-    this.concurrency = 56;
+    this.concurrency = 112;
     this.running = 0;
     this.queue = [];
   }
