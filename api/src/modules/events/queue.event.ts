@@ -17,7 +17,7 @@ export class TaskSenderQueue {
   queue: Array<ITask>;
 
   constructor(private readonly configService: ConfigService, private readonly eventEmitter: EventEmitter2) {
-    this.concurrency = this.configService.get('CONCURRENCY_PARSERS');
+    this.concurrency = 56;
     this.running = 0;
     this.queue = [];
   }
@@ -28,7 +28,7 @@ export class TaskSenderQueue {
 
   @OnEvent(ParserEvents.PARSE_NEXT)
   next() {
-    if (this.queue.length > 0 && this.running < 28 && this.started) {
+    if (this.queue.length > 0 && this.running < 56 && this.started) {
       const task = this.queue.shift();
       this.running += 1;
       setImmediate(() => task());
