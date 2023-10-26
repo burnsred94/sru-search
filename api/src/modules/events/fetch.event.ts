@@ -6,6 +6,7 @@ import { ProxyProvider } from '../proxy/providers';
 import { TaskSenderQueue } from './queue.event';
 import { ParserEvents } from 'src/events';
 import { FetchProvider } from '../fetch/providers';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 export enum SearchStatus {
   NOT_FOUND = -1,
@@ -15,6 +16,8 @@ export enum SearchStatus {
 @Injectable()
 export class FetchEvent {
   protected readonly logger = new Logger(FetchEvent.name);
+
+  initialization = false;
 
   mock = Array.from({ length: 100 }, () => ({
     id: 0,
@@ -26,7 +29,7 @@ export class FetchEvent {
     private readonly fetchProvider: FetchProvider,
     private readonly taskQueue: TaskSenderQueue,
     private readonly proxyProvider: ProxyProvider,
-  ) {}
+  ) { }
 
   async fetch() {
     const find = await this.taskStatsRepository.find();
@@ -198,5 +201,28 @@ export class FetchEvent {
       key: payload.key,
       article: String(payload.article),
     });
+  }
+
+  @Cron(CronExpression.EVERY_MINUTE)
+  async checkTask() {
+    if (!this.initialization) {
+      this.initialization = true;
+
+      const getTasksDB = await this.taskStatsRepository.getCountDocuments();
+
+      if (getTasksDB > 0) {
+        const task = () => this.fetch();
+        (() => {
+          for (let index = 0; index < getTasksDB; index++) {
+            this.taskQueue.pushTask(task);
+          }
+          this.logger.log(`Task queue started: ${getTasksDB}`);
+          this.taskQueue.setStarted(true);
+          this.taskQueue.next();
+        })();
+      } else {
+        this.initialization = false;
+      }
+    }
   }
 }
