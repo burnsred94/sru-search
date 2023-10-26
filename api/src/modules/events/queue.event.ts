@@ -17,7 +17,7 @@ export class TaskSenderQueue {
   queue: Array<ITask>;
 
   constructor(private readonly configService: ConfigService, private readonly eventEmitter: EventEmitter2) {
-    this.concurrency = 56;
+    this.concurrency = 100;
     this.running = 0;
     this.queue = [];
   }
@@ -28,10 +28,10 @@ export class TaskSenderQueue {
 
   @OnEvent(ParserEvents.PARSE_NEXT)
   next() {
-    if (this.queue.length > 0 && this.running < 56 && this.started) {
+    if (this.queue.length > 0 && this.running < 100 && this.started) {
       const task = this.queue.shift();
       this.running += 1;
-      setImmediate(() => task());
+      task();
     }
   }
 
@@ -47,7 +47,7 @@ export class TaskSenderQueue {
     }
 
     this.running = this.running - 1;
-    setImmediate(() => this.next());
+    this.next();
   }
 
   @OnEvent(EventProxy.PROXY_READY)
