@@ -6,7 +6,8 @@ services:
     build:
       context: .
       dockerfile: ./api/Dockerfile
-      target: production
+      target: development
+    command: npm run start:dev
     restart: unless-stopped
     env_file:
       - ./api/.env

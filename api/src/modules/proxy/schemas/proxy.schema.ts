@@ -25,7 +25,7 @@ export class Proxy {
   @Prop({ type: String })
   pass: string;
 
-  @Prop({ type: Number, default: 10 })
+  @Prop({ type: Number, default: 20 })
   useCount: number;
 }
 

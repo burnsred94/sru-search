@@ -14,10 +14,12 @@ export class QueueProvider {
     this.concurrency = 56;
     this.running = 0;
     this.queue = [];
+    this.runtime = [];
   }
 
   pushTask(task) {
     if (this.queue.length > 0) {
+      console.log(task);
       this.queue.push(task);
     } else {
       this.queue.push(task);

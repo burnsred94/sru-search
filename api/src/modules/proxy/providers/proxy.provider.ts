@@ -19,7 +19,7 @@ export class ProxyProvider {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  @Cron(CronExpression.EVERY_30_SECONDS)
+  @Cron(CronExpression.EVERY_5_SECONDS)
   async getProxyServer() {
     const proxyLength = await this.proxyRepository.findLength();
 

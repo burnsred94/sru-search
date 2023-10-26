@@ -1,4 +1,4 @@
-import { Controller, Logger } from '@nestjs/common';
+import { Body, Controller, Logger, Post } from '@nestjs/common';
 import { AppService } from './app.service';
 import { RabbitMqResponser, RabbitMqSubscriber } from './modules/rabbitmq/decorators';
 import { RmqExchanges, RmqServices } from './modules/rabbitmq/exchanges';
@@ -28,21 +28,7 @@ export class AppController {
     currentService: RmqServices.SEARCH,
   })
   async search(payload: SearchPositionRMQ.Payload) {
-    try {
-      this.queueProvider.pushTask(async () => await this.appService.search(payload));
-
-      if (!this.init) {
-        await this.fetchEvents.init();
-        this.init = true;
-      }
-    } catch (error) {
-      this.logger.error(error);
-    }
-  }
-
-  @OnEvent(InitEvents.END_PARSER)
-  async switchInit() {
-    this.init = false;
+    this.queueProvider.pushTask(() => this.appService.search(payload).then(() => this.fetchEvents.init()));
   }
 
   @RabbitMqResponser({

@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { EventProxy } from '../proxy/events';
-import { InitEvents, ParserEvents } from 'src/events';
+import { ParserEvents } from 'src/events';
 import { ConfigService } from '@nestjs/config';
 
 export type ITask = () => Promise<void>;
@@ -15,10 +15,12 @@ export class TaskSenderQueue {
   concurrency: number;
   running: number;
   queue: Array<ITask>;
+  runtime: Array<unknown>;
 
   constructor(private readonly configService: ConfigService, private readonly eventEmitter: EventEmitter2) {
-    this.concurrency = 100;
+    this.concurrency = 56;
     this.running = 0;
+    this.runtime = [];
     this.queue = [];
   }
 
@@ -28,14 +30,10 @@ export class TaskSenderQueue {
 
   @OnEvent(ParserEvents.PARSE_NEXT)
   next() {
-    if (this.queue.length > 0 && this.running < 100 && this.started) {
-      Promise.all(
-        this.queue.map((task) => {
-          this.queue.shift();
-          this.running + 1;
-          task();
-        }),
-      );
+    if (this.queue.length > 0 && this.running < 200 && this.started) {
+      const task = this.queue.shift();
+      this.running += 1;
+      new Promise((resolve) => resolve(task()));
     }
   }
 
@@ -45,14 +43,13 @@ export class TaskSenderQueue {
 
     if (this.queue.length === 0) {
       this.logger.log(`Queue is not empty`);
-      this.eventEmitter.emitAsync(InitEvents.END_PARSER);
       this.setStarted(false);
       this.running = 0;
       return;
     }
 
     this.running = this.running - 1;
-    this.next();
+    new Promise((resolve) => resolve(this.next()));
   }
 
   @OnEvent(EventProxy.PROXY_READY)
