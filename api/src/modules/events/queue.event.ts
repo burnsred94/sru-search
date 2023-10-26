@@ -30,7 +30,7 @@ export class TaskSenderQueue {
 
   @OnEvent(ParserEvents.PARSE_NEXT)
   next() {
-    if (this.queue.length > 0 && this.running < 200 && this.started) {
+    if (this.queue.length > 0 && this.running < 400 && this.started) {
       const task = this.queue.shift();
       this.running += 1;
       new Promise((resolve) => resolve(task()));
