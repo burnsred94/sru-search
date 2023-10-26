@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { EventProxy } from '../proxy/events';
-import { ParserEvents } from 'src/events';
+import { InitEvents, ParserEvents } from 'src/events';
 import { ConfigService } from '@nestjs/config';
 
 export type ITask = () => Promise<void>;
@@ -29,9 +29,13 @@ export class TaskSenderQueue {
   @OnEvent(ParserEvents.PARSE_NEXT)
   next() {
     if (this.queue.length > 0 && this.running < 100 && this.started) {
-      const task = this.queue.shift();
-      this.running += 1;
-      task();
+      Promise.all(
+        this.queue.map((task) => {
+          this.queue.shift();
+          this.running + 1;
+          task();
+        }),
+      );
     }
   }
 
@@ -41,6 +45,7 @@ export class TaskSenderQueue {
 
     if (this.queue.length === 0) {
       this.logger.log(`Queue is not empty`);
+      this.eventEmitter.emitAsync(InitEvents.END_PARSER);
       this.setStarted(false);
       this.running = 0;
       return;

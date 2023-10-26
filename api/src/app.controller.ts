@@ -7,10 +7,14 @@ import { GetPositionWidgetsRMQ } from './modules/rabbitmq/contracts/search/get-p
 import { Payload } from '@nestjs/microservices';
 import { FetchEvent } from './modules/events';
 import { QueueProvider } from './modules/queue/providers';
+import { OnEvent } from '@nestjs/event-emitter';
+import { InitEvents } from './events';
 
 @Controller({})
 export class AppController {
   protected readonly logger = new Logger(AppController.name);
+  init = false;
+
   constructor(
     private readonly appService: AppService,
     private readonly fetchEvents: FetchEvent,
@@ -25,12 +29,20 @@ export class AppController {
   })
   async search(payload: SearchPositionRMQ.Payload) {
     try {
-      this.queueProvider.pushTask(async () => {
-        await this.appService.search(payload), await this.fetchEvents.init();
-      });
+      this.queueProvider.pushTask(async () => await this.appService.search(payload));
+
+      if (!this.init) {
+        await this.fetchEvents.init();
+        this.init = true;
+      }
     } catch (error) {
       this.logger.error(error);
     }
+  }
+
+  @OnEvent(InitEvents.END_PARSER)
+  async switchInit() {
+    this.init = false;
   }
 
   @RabbitMqResponser({

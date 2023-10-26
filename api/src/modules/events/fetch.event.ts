@@ -35,7 +35,7 @@ export class FetchEvent {
       if (proxy.length === 3) {
         await this.taskStatsRepository.update(find._id);
         await this.reloadFetch(find, proxy);
-        this.eventEmitter.emit(ParserEvents.PARSE_NEXT);
+        this.taskQueue.next();
       }
     }
   }
