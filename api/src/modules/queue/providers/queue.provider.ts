@@ -11,7 +11,7 @@ export class QueueProvider {
   runtime: Promise<unknown>[];
 
   constructor(private readonly configService: ConfigService) {
-    this.concurrency = 56;
+    this.concurrency = 28;
     this.running = 0;
     this.queue = [];
     this.runtime = [];
