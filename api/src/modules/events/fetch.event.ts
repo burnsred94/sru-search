@@ -26,7 +26,7 @@ export class FetchEvent {
     private readonly fetchProvider: FetchProvider,
     private readonly taskQueue: TaskSenderQueue,
     private readonly proxyProvider: ProxyProvider,
-  ) {}
+  ) { }
 
   async fetch() {
     const find = await this.taskStatsRepository.find();
@@ -45,7 +45,7 @@ export class FetchEvent {
     if (pwzIndex === pwzLength) {
       await this.taskStatsRepository.remove(payload._id);
       await this.proxyProvider.upProxy(proxyChunk);
-      this.eventEmitter.emit(ParserEvents.PARSE_END);
+      this.taskQueue.end();
       return;
     }
 
@@ -66,19 +66,27 @@ export class FetchEvent {
         if (response === undefined || response.statusCode === 404) {
           results.push(...this.mock);
           if (pwzIndex < payload.pwz.length) {
-            return this.reloadFetch(payload, proxyChunk, pwzIndex + 1, 0, indexProxy, []);
+            new Promise((resolve) => resolve(this.reloadFetch(payload, proxyChunk, pwzIndex + 1, 0, indexProxy, [])));
+            return;
           }
-          return await this.reloadFetch(payload, proxyChunk, pwzIndex, urlIndex + 1, indexProxy, results);
+          new Promise((resolve) =>
+            resolve(this.reloadFetch(payload, proxyChunk, pwzIndex, urlIndex + 1, indexProxy, results)),
+          );
+          return;
         }
 
         if (error) {
           if (error.response?.status === 429) {
             this.logger.warn(error.message);
-            setImmediate(() => this.reloadFetch(payload, proxyChunk, pwzIndex, urlIndex, indexProxy, results));
+            new Promise((resolve) =>
+              resolve(this.reloadFetch(payload, proxyChunk, pwzIndex, urlIndex, indexProxy, results)),
+            );
             return;
           }
           results.push(...this.mock);
-          setImmediate(() => this.reloadFetch(payload, proxyChunk, pwzIndex, urlIndex + 1, indexProxy, results));
+          new Promise((resolve) =>
+            resolve(this.reloadFetch(payload, proxyChunk, pwzIndex, urlIndex + 1, indexProxy, results)),
+          );
           return;
         } else {
           if (body.length > 0) {
@@ -100,7 +108,9 @@ export class FetchEvent {
                   pwz.averageId,
                   payload,
                 );
-                setImmediate(() => this.reloadFetch(payload, proxyChunk, pwzIndex + 1, 0, indexProxy, []));
+                new Promise((resolve) =>
+                  resolve(this.reloadFetch(payload, proxyChunk, pwzIndex + 1, 0, indexProxy, [])),
+                );
                 return;
               } else if (urls.length - 1 === urlIndex) {
                 this.failedShipment(
@@ -112,13 +122,19 @@ export class FetchEvent {
                   pwz.averageId,
                   payload,
                 );
-                setImmediate(() => this.reloadFetch(payload, proxyChunk, pwzIndex + 1, 0, indexProxy, []));
+                new Promise((resolve) =>
+                  resolve(this.reloadFetch(payload, proxyChunk, pwzIndex + 1, 0, indexProxy, [])),
+                );
                 return;
               } else if (urlIndex < urls.length - 1) {
-                setImmediate(() => this.reloadFetch(payload, proxyChunk, pwzIndex, urlIndex + 1, indexProxy, results));
+                new Promise((resolve) =>
+                  resolve(this.reloadFetch(payload, proxyChunk, pwzIndex, urlIndex + 1, indexProxy, results)),
+                );
                 return;
               } else if (pwzIndex < payload.pwz.length) {
-                setImmediate(() => this.reloadFetch(payload, proxyChunk, pwzIndex + 1, 0, indexProxy, []));
+                new Promise((resolve) =>
+                  resolve(this.reloadFetch(payload, proxyChunk, pwzIndex + 1, 0, indexProxy, [])),
+                );
                 return;
               }
             } catch {
@@ -131,7 +147,7 @@ export class FetchEvent {
                 pwz.averageId,
                 payload,
               );
-              setImmediate(() => this.reloadFetch(payload, proxyChunk, pwzIndex + 1, 0, indexProxy, []));
+              new Promise((resolve) => resolve(this.reloadFetch(payload, proxyChunk, pwzIndex + 1, 0, indexProxy, [])));
               return;
             }
           }
@@ -175,28 +191,36 @@ export class FetchEvent {
         ? position.card.log
         : { cpm: 0, promotion: 0, promoPosition: 0, position: position.position };
 
-    await this.fetchProvider.sendUpdateStats({
-      name: address,
-      position: position,
-      periodId: periodId,
-      averageId: averageId,
-      addressId: addressId,
-      key_id: key_id,
-      key: payload.key,
-      article: String(payload.article),
-    });
+    new Promise((resolve) =>
+      resolve(
+        this.fetchProvider.sendUpdateStats({
+          name: address,
+          position: position,
+          periodId: periodId,
+          averageId: averageId,
+          addressId: addressId,
+          key_id: key_id,
+          key: payload.key,
+          article: String(payload.article),
+        }),
+      ),
+    );
   }
 
   async failedShipment(address, status, periodId, addressId, key_id, averageId, payload) {
-    await this.fetchProvider.sendUpdateStats({
-      name: address,
-      position: { cpm: 0, promotion: 0, promoPosition: 0, position: status },
-      periodId: periodId,
-      averageId: averageId,
-      addressId: addressId,
-      key_id: key_id,
-      key: payload.key,
-      article: String(payload.article),
-    });
+    new Promise((resolve) =>
+      resolve(
+        this.fetchProvider.sendUpdateStats({
+          name: address,
+          position: { cpm: 0, promotion: 0, promoPosition: 0, position: status },
+          periodId: periodId,
+          averageId: averageId,
+          addressId: addressId,
+          key_id: key_id,
+          key: payload.key,
+          article: String(payload.article),
+        }),
+      ),
+    );
   }
 }
